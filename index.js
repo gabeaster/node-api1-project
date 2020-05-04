@@ -45,19 +45,22 @@ server.post("/api/users", function (req, res) {
 });
 
 //get /api/users/:id returns the user object with the specified id
-// server.get("/api/users/:id", function (req, res) {
-//   const id = req.params.id;
-//   if (id === undefined) {
-//     res
-//       .status(404)
-//       .json({ message: "The user with the specified ID does not exist." });
-//   } else if (id != req.params.id) {
-//     res
-//       .status(500)
-//       .json({ errorMessage: "The user information could not be retrieved." });
-//   }
-//   res.status(200).json("user" + req.params.id);
-// });
+server.get("/api/users/:id", function (req, res) {
+  const id = req.params.id;
+  db.findById(id)
+    .then((user) => {
+      !user
+        ? res
+            .status(404)
+            .json({ message: "The user with the specified ID does not exist." })
+        : res.status(200).json(user);
+    })
+    .catch((err) =>
+      res
+        .status(500)
+        .json({ errorMessage: "The user information could not be retrieved." })
+    );
+});
 
 //delete /api/users/:id removes the user with the specified id and returns the deleted user
 // server.delete("/api/users/:id", function (req, res) {
