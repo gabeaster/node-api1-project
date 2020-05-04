@@ -28,7 +28,10 @@ server.post("/api/users", function (req, res) {
   res.status(200).json(userInformation);
 });
 //get /api/users/:id returns the user object with the specified id
-server.get("/api/users/:id");
+server.get("/api/users/:id", function (req, res) {
+  const id = req.params.id;
+  res.status(200).json("user" + req.params.id);
+});
 //delete /api/users/:id removes the user with the specified id and returns the deleted user
 server.delete("/api/users/:id", function (req, res) {
   const id = req.params.id;
