@@ -17,10 +17,6 @@ let users = [
     name: "array of users",
   },
 ];
-//get /api/users returns an array of users
-server.get("/api/users", function (req, res) {
-  res.json(users);
-});
 
 //post request /api/users creates a user using the information sent inside the request body
 server.post("/api/users", function (req, res) {
@@ -44,7 +40,20 @@ server.post("/api/users", function (req, res) {
   }
 });
 
-//get /api/users/:id returns the user object with the specified id
+//GET /api/users returns an array of users
+server.get("/api/users", function (req, res) {
+  db.find()
+    .then((users) => {
+      res.status(200).json({ users });
+    })
+    .catch((err) => {
+      res.status(500).json({
+        errorMessage: "The users information could not be retrieved.",
+      });
+    });
+});
+
+//GET /api/users/:id returns the user object with the specified id
 server.get("/api/users/:id", function (req, res) {
   const id = req.params.id;
   db.findById(id)
@@ -62,28 +71,45 @@ server.get("/api/users/:id", function (req, res) {
     );
 });
 
-//delete /api/users/:id removes the user with the specified id and returns the deleted user
-// server.delete("/api/users/:id", function (req, res) {
-//   const id = req.params.id;
-//   if (id === undefined) {
-//     res
-//       .status(404)
-//       .json({ message: "The user with the specified ID does not exist." });
-//   } else if (id != req.params.id) {
-//     res
-//       .status(500)
-//       .json({ errorMessage: "The user information could not be retrieved." });
-//   } else users = users.filter((user) => user.id != id);
-//   res.status(200).json(users);
-// });
+//DELETE /api/users/:id removes the user with the specified id and returns the deleted user
+server.delete("/api/users/:id", function (req, res) {
+  const id = req.params.id;
+  db.remove(id)
+    .then((deleted) => {
+      deleted
+        ? res.status(204).end()
+        : res.status(404).json({
+            errorMessage: "The user with the specified ID does not exist.",
+          });
+    })
+    .catch((err) =>
+      res.status(500).json({ errorMessage: "The user could not be removed" })
+    );
+});
 
-//patch /api/users/:id updates the user with the specified id using data form the request body. Returns the modified user.
-// server.patch("/api/users/:id", function (req, res) {
-//   const id = req.params.id;
-//   updatedUser = users.filter((user) => user.id == id);
-//   const userInformation = req.body;
-//   users.push(userInformation);
-//   res.status(200).json(users);
-// });
+//PATCH	/api/users/:id	Updates the user with the specified id using data from the request body. Returns the modified user
+server.patch("api/users/:id", function (req, res) {
+  const id = req.params.id;
+  const user = req.body;
+  if (!user.name || !user.bio) {
+    res
+      .status(400)
+      .json({ errorMessage: "Please provide name and bio for the user." });
+  } else {
+    db.update(id, user)
+      .then((updated) => {
+        !updated
+          ? res.status(404).json({
+              errorMessage: "The user with the specified ID does not exist.",
+            })
+          : res.status(200).json(user);
+      })
+      .catch((err) =>
+        res
+          .status(500)
+          .json({ errorMessage: "The user information could not be modified." })
+      );
+  }
+});
 
 server.listen(9000, () => console.log("/ API IS UP /"));
